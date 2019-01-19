@@ -34,7 +34,6 @@ public class DemoApplication {
      * 不过注释说这算是实验性质的微性能改进。
      */
     public static WaitStrategy LITE_BLOCKING_WAIT = new LiteBlockingWaitStrategy();
-
     /**
      * 性能表现跟 BlockingWaitStrategy 差不多，对 CPU 的消耗也类似，但其对生产者线程的影响最小
      * CPU友好型策略。会在循环中不断等待数据。
