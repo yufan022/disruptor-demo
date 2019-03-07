@@ -90,7 +90,7 @@ public class DemoApplication {
 
         long start = System.currentTimeMillis();
         ByteBuffer bb = ByteBuffer.allocate(8);
-        for (long l = 0; l < 10000000; l++) {
+        for (long l = 0; l < 100000; l++) {
             bb.putLong(0, l);
             producer.onData(bb);
             //            Thread.sleep(1000);
