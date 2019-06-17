@@ -1,9 +1,14 @@
 package com.example.disruptordemo;
 
+import com.example.disruptordemo.constant.Constants;
 import com.example.disruptordemo.event.LongEvent;
+import com.example.disruptordemo.event.StringEvent;
 import com.example.disruptordemo.factory.LongEventFactory;
+import com.example.disruptordemo.factory.StringEventFactory;
 import com.example.disruptordemo.handler.LongEventHandler;
+import com.example.disruptordemo.handler.StringEventHandler;
 import com.example.disruptordemo.producer.LongEventProducerWithTranslator;
+import com.example.disruptordemo.producer.StringEventProducerWithTranslator;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
@@ -12,6 +17,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
@@ -71,34 +78,44 @@ public class DemoApplication {
 
         // The factory for the event
         LongEventFactory factory = new LongEventFactory();
+//        StringEventFactory factory = new StringEventFactory();
 
         // Specify the size of the ring buffer, must be power of 2.
-        int bufferSize = 4096 * 4096;
+//        int bufferSize = 268435456;
+        int bufferSize = 1024 * 1024;
         // Construct the Disruptor
         Disruptor<LongEvent> disruptor = new Disruptor<>(factory, bufferSize, DaemonThreadFactory.INSTANCE, ProducerType.SINGLE, YIELDING_WAIT);
+//        Disruptor<StringEvent> disruptor = new Disruptor<>(factory, bufferSize, DaemonThreadFactory.INSTANCE, ProducerType.SINGLE, YIELDING_WAIT);
 
         // Connect the handler
         disruptor.handleEventsWith(new LongEventHandler());
+//        disruptor.handleEventsWith(new StringEventHandler());
 
         // Start the Disruptor, starts all threads running
         disruptor.start();
 
         // Get the ring buffer from the Disruptor to be used for publishing.
         RingBuffer<LongEvent> ringBuffer = disruptor.getRingBuffer();
+//        RingBuffer<StringEvent> ringBuffer = disruptor.getRingBuffer();
 
         LongEventProducerWithTranslator producer = new LongEventProducerWithTranslator(ringBuffer);
+//        StringEventProducerWithTranslator producer = new StringEventProducerWithTranslator(ringBuffer);
 
         long start = System.currentTimeMillis();
-        ByteBuffer bb = ByteBuffer.allocate(8);
-        for (long l = 0; l < 100000; l++) {
-            bb.putLong(0, l);
+        ByteBuffer bb = ByteBuffer.allocate(1024 * 1024);
+        Long l = 0L;
+        while (true) {
+            bb.putLong(0, l++);
             producer.onData(bb);
-            //            Thread.sleep(1000);
+//            bb.put(Constants.TEST.getBytes());
+//            System.out.println(l++);
+            producer.onData(bb);
+            Thread.sleep(1);
         }
-        disruptor.shutdown();
-        long end = System.currentTimeMillis();
-        long costTime = end - start;
-        System.out.println("end : " + costTime);
+        //        disruptor.shutdown();
+        //        long end = System.currentTimeMillis();
+        //        long costTime = end - start;
+        //        System.out.println("end : " + costTime);
     }
 
 }
